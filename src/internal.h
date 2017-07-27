@@ -433,6 +433,7 @@ struct _GLFWwindow
         GLFWframebuffersizefun  fbsize;
         GLFWmousebuttonfun      mouseButton;
         GLFWcursorposfun        cursorPos;
+	GLFWcursorposfun        cursorDelta;
         GLFWcursorenterfun      cursorEnter;
         GLFWscrollfun           scroll;
         GLFWkeyfun              key;
@@ -821,6 +822,16 @@ void _glfwInputMouseClick(_GLFWwindow* window, int button, int action, int mods)
  *  @ingroup event
  */
 void _glfwInputCursorPos(_GLFWwindow* window, double xpos, double ypos);
+
+
+
+/*! @brief Notifies shared code of a cursor motion event.
+ *  @param[in] window The window that received the event.
+ *  @param[in] dx Delta x-coordinate of the cursor.
+ *  @param[in] dy Delta y-coordinate of the cursor.
+ *  @ingroup event
+ */
+void _glfwInputCursorDelta(_GLFWwindow* window, int dx, int dy);
 
 /*! @brief Notifies shared code of a cursor enter/leave event.
  *  @param[in] window The window that received the event.

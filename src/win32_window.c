@@ -725,6 +725,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
                 dy = data->data.mouse.lLastY;
             }
 
+	    _glfwInputCursorDelta(window, dx, dy);
             _glfwInputCursorPos(window,
                                 window->virtualCursorPosX + dx,
                                 window->virtualCursorPosY + dy);

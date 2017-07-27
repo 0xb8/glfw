@@ -244,6 +244,12 @@ void _glfwInputCursorPos(_GLFWwindow* window, double xpos, double ypos)
         window->callbacks.cursorPos((GLFWwindow*) window, xpos, ypos);
 }
 
+void _glfwInputCursorDelta(_GLFWwindow* window, int dx, int dy)
+{
+    if (window->callbacks.cursorDelta)
+        window->callbacks.cursorDelta((GLFWwindow*) window, dx, dy);
+}
+
 void _glfwInputCursorEnter(_GLFWwindow* window, GLFWbool entered)
 {
     if (window->callbacks.cursorEnter)
@@ -725,6 +731,18 @@ GLFWAPI GLFWcursorposfun glfwSetCursorPosCallback(GLFWwindow* handle,
     _GLFW_SWAP_POINTERS(window->callbacks.cursorPos, cbfun);
     return cbfun;
 }
+
+GLFWAPI GLFWcursordeltafun glfwSetCursorDeltaCallback(GLFWwindow* handle,
+                                                  GLFWcursordeltafun cbfun)
+{
+    _GLFWwindow* window = (_GLFWwindow*) handle;
+    assert(window != NULL);
+
+    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW_SWAP_POINTERS(window->callbacks.cursorDelta, cbfun);
+    return cbfun;
+}
+
 
 GLFWAPI GLFWcursorenterfun glfwSetCursorEnterCallback(GLFWwindow* handle,
                                                       GLFWcursorenterfun cbfun)
