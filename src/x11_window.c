@@ -986,17 +986,20 @@ static void processEvent(XEvent *event)
                     const double* values = re->raw_values;
                     double xpos = window->virtualCursorPosX;
                     double ypos = window->virtualCursorPosY;
+                    double dx = 0.0;
+                    double dy = 0.0;
 
                     if (XIMaskIsSet(re->valuators.mask, 0))
                     {
-                        xpos += *values;
+                        dx += *values;
                         values++;
                     }
 
                     if (XIMaskIsSet(re->valuators.mask, 1))
-                        ypos += *values;
+                        dy += *values;
 
-                    _glfwInputCursorPos(window, xpos, ypos);
+                    _glfwInputCursorDelta(window, dx, dy);
+                    _glfwInputCursorPos(window, xpos + dx, ypos + dy);
                 }
             }
 
