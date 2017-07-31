@@ -433,7 +433,7 @@ struct _GLFWwindow
         GLFWframebuffersizefun  fbsize;
         GLFWmousebuttonfun      mouseButton;
         GLFWcursorposfun        cursorPos;
-	GLFWcursorposfun        cursorDelta;
+        GLFWcursordeltafun      cursorDelta;
         GLFWcursorenterfun      cursorEnter;
         GLFWscrollfun           scroll;
         GLFWkeyfun              key;
