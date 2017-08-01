@@ -831,7 +831,7 @@ void _glfwInputCursorPos(_GLFWwindow* window, double xpos, double ypos);
  *  @param[in] dy Delta y-coordinate of the cursor.
  *  @ingroup event
  */
-void _glfwInputCursorDelta(_GLFWwindow* window, int dx, int dy);
+void _glfwInputCursorDelta(_GLFWwindow* window, double dx, double dy);
 
 /*! @brief Notifies shared code of a cursor enter/leave event.
  *  @param[in] window The window that received the event.

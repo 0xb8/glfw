@@ -1287,7 +1287,7 @@ typedef void (* GLFWmousebuttonfun)(GLFWwindow*,int,int,int);
  *  @ingroup input
  */
 typedef void (* GLFWcursorposfun)(GLFWwindow*,double,double);
-typedef void (* GLFWcursordeltafun)(GLFWwindow*,int,int);
+typedef void (* GLFWcursordeltafun)(GLFWwindow*,double,double);
 
 /*! @brief The function signature for cursor enter/leave callbacks.
  *

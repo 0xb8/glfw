@@ -244,7 +244,7 @@ void _glfwInputCursorPos(_GLFWwindow* window, double xpos, double ypos)
         window->callbacks.cursorPos((GLFWwindow*) window, xpos, ypos);
 }
 
-void _glfwInputCursorDelta(_GLFWwindow* window, int dx, int dy)
+void _glfwInputCursorDelta(_GLFWwindow* window, double dx, double dy)
 {
     if (window->callbacks.cursorDelta)
         window->callbacks.cursorDelta((GLFWwindow*) window, dx, dy);
