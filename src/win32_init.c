@@ -124,9 +124,9 @@ static GLFWbool loadLibraries(void)
     _glfw.win32.dwmapi.instance = LoadLibraryA("dwmapi.dll");
     if (_glfw.win32.dwmapi.instance)
     {
-        _glfw.win32.dwmapi.DwmIsCompositionEnabled = (PFN_DwmIsCompositionEnabled)
+        _glfw.win32.dwmapi.IsCompositionEnabled = (PFN_DwmIsCompositionEnabled)
             GetProcAddress(_glfw.win32.dwmapi.instance, "DwmIsCompositionEnabled");
-        _glfw.win32.dwmapi.DwmFlush = (PFN_DwmFlush)
+        _glfw.win32.dwmapi.Flush = (PFN_DwmFlush)
             GetProcAddress(_glfw.win32.dwmapi.instance, "DwmFlush");
     }
 
@@ -412,8 +412,8 @@ char* _glfwCreateUTF8FromWideStringWin32(const WCHAR* source)
 //
 void _glfwInputErrorWin32(int error, const char* description)
 {
-    WCHAR buffer[1024] = L"";
-    char message[2048] = "";
+    WCHAR buffer[_GLFW_MESSAGE_SIZE] = L"";
+    char message[_GLFW_MESSAGE_SIZE] = "";
 
     FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM |
                        FORMAT_MESSAGE_IGNORE_INSERTS |

@@ -146,6 +146,8 @@ information on what to include when reporting a bug.
 - Added `glfwGetJoystickHats` function for querying joystick hats
   (#889,#906,#934)
 - Added `glfwInitHint` and `glfwInitHintString` for setting initialization hints
+- Added `glfwGetX11SelectionString` and `glfwSetX11SelectionString`
+  functions for accessing X11 primary selection (#894,#1056)
 - Added headless [OSMesa](http://mesa3d.org/osmesa.html) backend (#850)
 - Added definition of `GLAPIENTRY` to public header
 - Added `GLFW_CENTER_CURSOR` window hint for controlling cursor centering
@@ -188,6 +190,7 @@ information on what to include when reporting a bug.
 - [Win32] Bugfix: Monitor events were not emitted (#784)
 - [Win32] Bugfix: The Cygwin DLL was installed to the wrong directory (#1035)
 - [Win32] Bugfix: Normalization of axis data via XInput was incorrect (#1045)
+- [Win32] Bugfix: `glfw3native.h` would undefine a foreign `APIENTRY` (#1062)
 - [X11] Moved to XI2 `XI_RawMotion` for disable cursor mode motion input (#125)
 - [X11] Replaced `_GLFW_HAS_XF86VM` compile-time option with dynamic loading
 - [X11] Bugfix: `glfwGetVideoMode` would segfault on Cygwin/X
@@ -330,6 +333,7 @@ skills.
  - Jon Morton
  - Pierre Moulon
  - Julian Møller
+ - Kristian Nielsen
  - Kamil Nowakowski
  - Ozzy
  - Andri Pálsson
@@ -382,6 +386,7 @@ skills.
  - Frank Wille
  - yuriks
  - Ryogo Yoshimura
+ - Andrey Zholos
  - Santi Zupancic
  - Jonas Ådahl
  - Lasse Öörni
