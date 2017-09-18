@@ -45,8 +45,8 @@ guide](http://www.glfw.org/docs/latest/moving.html) for moving to the GLFW
 ## Compiling GLFW
 
 GLFW itself requires only the headers and libraries for your window system.  It
-does not need the headers for any context creation API (WGL, GLX, EGL, NSGL) or
-rendering API (OpenGL, OpenGL ES, Vulkan) to enable support for them.
+does not need the headers for any context creation API (WGL, GLX, EGL, NSGL,
+OSMesa) or rendering API (OpenGL, OpenGL ES, Vulkan) to enable support for them.
 
 GLFW supports compilation on Windows with Visual C++ 2010 and later, MinGW and
 MinGW-w64, on macOS with Clang and on Linux and other Unix-like systems with GCC
@@ -163,6 +163,7 @@ information on what to include when reporting a bug.
 - Added `GLFW_INCLUDE_ES32` for including the OpenGL ES 3.2 header
 - Added `GLFW_OSMESA_CONTEXT_API` for creating OpenGL contexts with
   [OSMesa](https://www.mesa3d.org/osmesa.html) (#281)
+- Added `GenerateMappings.cmake` script for updating gamepad mappings
 - Removed `GLFW_USE_RETINA` compile-time option
 - Removed `GLFW_USE_CHDIR` compile-time option
 - Removed `GLFW_USE_MENUBAR` compile-time option
@@ -191,6 +192,9 @@ information on what to include when reporting a bug.
 - [Win32] Bugfix: The Cygwin DLL was installed to the wrong directory (#1035)
 - [Win32] Bugfix: Normalization of axis data via XInput was incorrect (#1045)
 - [Win32] Bugfix: `glfw3native.h` would undefine a foreign `APIENTRY` (#1062)
+- [Win32] Bugfix: Disabled cursor mode prevented use of caption buttons
+                  (#650,#1071)
+- [Win32] Bugfix: Returned key names did not match other platforms (#943)
 - [X11] Moved to XI2 `XI_RawMotion` for disable cursor mode motion input (#125)
 - [X11] Replaced `_GLFW_HAS_XF86VM` compile-time option with dynamic loading
 - [X11] Bugfix: `glfwGetVideoMode` would segfault on Cygwin/X
@@ -201,6 +205,9 @@ information on what to include when reporting a bug.
 - [X11] Bugfix: IM-duplicated key events would leak at low polling rates (#747)
 - [X11] Bugfix: Gamma ramp setting via RandR did not validate ramp size
 - [X11] Bugfix: Key name string encoding depended on current locale (#981,#983)
+- [X11] Bugfix: Incremental reading of selections was not supported (#275)
+- [X11] Bugfix: Selection I/O reported but did not support `COMPOUND_TEXT`
+- [X11] Bugfix: Latin-1 text read from selections was not converted to UTF-8
 - [Linux] Moved to evdev for joystick input (#906,#1005)
 - [Linux] Bugfix: Event processing did not detect joystick disconnection (#932)
 - [Linux] Bugfix: The joystick device path could be truncated (#1025)

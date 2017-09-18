@@ -63,7 +63,6 @@
 
 #include <wctype.h>
 #include <windows.h>
-#include <mmsystem.h>
 #include <dinput.h>
 #include <xinput.h>
 #include <dbt.h>
@@ -233,6 +232,7 @@ typedef struct _GLFWwindowWin32
     HICON               smallIcon;
 
     GLFWbool            cursorTracked;
+    GLFWbool            frameAction;
     GLFWbool            iconified;
     GLFWbool            maximized;
 
@@ -249,9 +249,9 @@ typedef struct _GLFWlibraryWin32
     DWORD               foregroundLockTimeout;
     int                 acquiredMonitorCount;
     char*               clipboardString;
-    char                keyName[64];
     short int           keycodes[512];
     short int           scancodes[GLFW_KEY_LAST + 1];
+    char                keynames[GLFW_KEY_LAST + 1][5];
     // Where to place the cursor when re-enabled
     double              restoreCursorPosX, restoreCursorPosY;
     // The window whose disabled cursor mode is active
@@ -299,6 +299,7 @@ typedef struct _GLFWlibraryWin32
 //
 typedef struct _GLFWmonitorWin32
 {
+    HMONITOR            handle;
     // This size matches the static size of DISPLAY_DEVICE.DeviceName
     WCHAR               adapterName[32];
     WCHAR               displayName[32];
@@ -351,6 +352,7 @@ void _glfwUnregisterWindowClassWin32(void);
 WCHAR* _glfwCreateWideStringFromUTF8Win32(const char* source);
 char* _glfwCreateUTF8FromWideStringWin32(const WCHAR* source);
 void _glfwInputErrorWin32(int error, const char* description);
+void _glfwUpdateKeyNamesWin32(void);
 
 void _glfwInitTimerWin32(void);
 
