@@ -651,6 +651,29 @@ static GLFWbool initExtensions(void)
             dlsym(_glfw.x11.x11xcb.handle, "XGetXCBConnection");
     }
 
+    _glfw.x11.xrender.handle = dlopen("libXrender.so.1", RTLD_LAZY | RTLD_GLOBAL);
+    if (_glfw.x11.xrender.handle)
+    {
+        _glfw.x11.xrender.QueryExtension = (PFN_XRenderQueryExtension)
+            dlsym(_glfw.x11.xrender.handle, "XRenderQueryExtension");
+        _glfw.x11.xrender.QueryVersion = (PFN_XRenderQueryVersion)
+            dlsym(_glfw.x11.xrender.handle, "XRenderQueryVersion");
+        _glfw.x11.xrender.FindVisualFormat = (PFN_XRenderFindVisualFormat)
+            dlsym(_glfw.x11.xrender.handle, "XRenderFindVisualFormat");
+
+        if (XRenderQueryExtension(_glfw.x11.display,
+                                  &_glfw.x11.xrender.errorBase,
+                                  &_glfw.x11.xrender.eventBase))
+        {
+            if (XRenderQueryVersion(_glfw.x11.display,
+                                    &_glfw.x11.xrender.major,
+                                    &_glfw.x11.xrender.minor))
+            {
+                _glfw.x11.xrender.available = GLFW_TRUE;
+            }
+        }
+    }
+
     // Update the key code LUT
     // FIXME: We should listen to XkbMapNotify events to track changes to
     // the keyboard mapping.

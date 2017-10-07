@@ -315,6 +315,9 @@ GLFWAPI void glfwWindowHint(int hint, int value)
         case GLFW_DOUBLEBUFFER:
             _glfw.hints.framebuffer.doublebuffer = value ? GLFW_TRUE : GLFW_FALSE;
             return;
+        case GLFW_TRANSPARENT:
+            _glfw.hints.framebuffer.transparent = value ? GLFW_TRUE : GLFW_FALSE;
+            return;
         case GLFW_SAMPLES:
             _glfw.hints.framebuffer.samples = value;
             return;
@@ -724,6 +727,8 @@ GLFWAPI int glfwGetWindowAttrib(GLFWwindow* handle, int attrib)
             return _glfwPlatformWindowVisible(window);
         case GLFW_MAXIMIZED:
             return _glfwPlatformWindowMaximized(window);
+        case GLFW_TRANSPARENT:
+            return _glfwPlatformFramebufferTransparent(window);
         case GLFW_RESIZABLE:
             return window->resizable;
         case GLFW_DECORATED:
