@@ -170,6 +170,19 @@ When sticky keys mode is enabled, the pollable state of a key will remain
 it has been polled, if a key release event had been processed in the meantime,
 the state will reset to `GLFW_RELEASE`, otherwise it will remain `GLFW_PRESS`.
 
+@anchor GLFW_LOCK_KEY_MODS
+If you wish to know what the state of the Caps Lock and Num Lock keys was when
+input events were generated, set the `GLFW_LOCK_KEY_MODS` input mode.
+
+@code
+glfwSetInputMode(window, GLFW_LOCK_KEY_MODS, 1);
+@endcode
+
+When this input mode is enabled, any callback that receives
+[modifier bits](@ref mods) will have the @ref GLFW_MOD_CAPS_LOCK bit set if Caps
+Lock was on when the event occurred and the @ref GLFW_MOD_NUM_LOCK bit set if
+Num Lock was on.
+
 The `GLFW_KEY_LAST` constant holds the highest value of any
 [named key](@ref keys).
 
@@ -186,8 +199,7 @@ encode the code points into UTF-8 or any other encoding you prefer.
 Because an `unsigned int` is 32 bits long on all platforms supported by GLFW,
 you can treat the code point argument as native endian UTF-32.
 
-There are two callbacks for receiving Unicode code points.  If you wish to
-offer regular text input, set a character callback.
+If you wish to offer regular text input, set a character callback.
 
 @code
 glfwSetCharCallback(window, character_callback);
@@ -199,23 +211,6 @@ that platform.
 
 @code
 void character_callback(GLFWwindow* window, unsigned int codepoint)
-{
-}
-@endcode
-
-If you also wish to receive those Unicode code points generated with modifier
-key combinations that a plain text field would ignore, or want to know exactly
-what modifier keys were used, set a character with modifiers callback.
-
-@code
-glfwSetCharModsCallback(window, charmods_callback);
-@endcode
-
-The callback function receives Unicode code points and
-[modifier bits](@ref mods).
-
-@code
-void charmods_callback(GLFWwindow* window, unsigned int codepoint, int mods)
 {
 }
 @endcode
@@ -846,7 +841,7 @@ converted to one, you can retrieve it with @ref glfwGetClipboardString.  See the
 reference documentation for the lifetime of the returned string.
 
 @code
-const char* text = glfwGetClipboardString(window);
+const char* text = glfwGetClipboardString(NULL);
 if (text)
 {
     insert_text(text);
@@ -860,12 +855,8 @@ The contents of the system clipboard can be set to a UTF-8 encoded string with
 @ref glfwSetClipboardString.
 
 @code
-glfwSetClipboardString(window, "A string with words in it");
+glfwSetClipboardString(NULL, "A string with words in it");
 @endcode
-
-The clipboard functions take a window handle argument because some window
-systems require a window to communicate with the system clipboard.  Any valid
-window may be used.
 
 
 @section path_drop Path drop input
