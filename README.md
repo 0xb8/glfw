@@ -136,8 +136,9 @@ information on what to include when reporting a bug.
   gamepad mapping (#900)
 - Added `glfwGetGamepadState` function, `GLFW_GAMEPAD_*` and `GLFWgamepadstate`
   for retrieving gamepad input state (#900)
-- Added `glfwGetWindowContentScale` and `glfwGetMonitorContentScale` for
-  DPI-aware rendering (#235,#439,#677,#845,#898)
+- Added `glfwGetWindowContentScale`, `glfwGetMonitorContentScale` and
+  `glfwSetWindowContentScaleCallback` for DPI-aware rendering
+  (#235,#439,#677,#845,#898)
 - Added `glfwRequestWindowAttention` function for requesting attention from the
   user (#732,#988)
 - Added `glfwGetKeyScancode` function that allows retrieving platform dependent
@@ -161,6 +162,7 @@ information on what to include when reporting a bug.
 - Added definition of `GLAPIENTRY` to public header
 - Added `GLFW_TRANSPARENT_FRAMEBUFFER` window hint and attribute for controlling
   per-pixel framebuffer transparency (#197,#663,#715,#723,#1078)
+- Added `GLFW_HOVERED` window attribute for polling cursor hover state (#1166)
 - Added `GLFW_CENTER_CURSOR` window hint for controlling cursor centering
   (#749,#842)
 - Added `GLFW_JOYSTICK_HAT_BUTTONS` init hint (#889)
@@ -212,6 +214,9 @@ information on what to include when reporting a bug.
 - [Win32] Bugfix: Returned key names did not match other platforms (#943)
 - [Win32] Bugfix: Undecorated windows did not maximize to workarea (#899)
 - [Win32] Bugfix: Window was resized twice when entering full screen (#1085)
+- [Win32] Bugfix: The HID device notification was not unregistered (#1170)
+- [Win32] Bugfix: `glfwCreateWindow` activated window even with `GLFW_FOCUSED`
+                  hint set to false (#1179,#1180)
 - [X11] Moved to XI2 `XI_RawMotion` for disable cursor mode motion input (#125)
 - [X11] Replaced `_GLFW_HAS_XF86VM` compile-time option with dynamic loading
 - [X11] Bugfix: `glfwGetVideoMode` would segfault on Cygwin/X
@@ -397,6 +402,7 @@ skills.
  - Keith Pitt
  - Stanislav Podgorskiy
  - Alexandre Pretyman
+ - przemekmirek
  - Philip Rideout
  - Eddie Ringle
  - Jorge Rodriguez

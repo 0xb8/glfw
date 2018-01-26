@@ -1056,7 +1056,7 @@ static const char* getSelectionString(Atom selection)
             if (targets[i] == XA_STRING)
                 *selectionString = convertLatin1toUTF8(data);
             else
-                *selectionString = strdup(data);
+                *selectionString = _glfw_strdup(data);
         }
 
         XFree(data);
@@ -2456,6 +2456,28 @@ int _glfwPlatformWindowMaximized(_GLFWwindow* window)
     return maximized;
 }
 
+int _glfwPlatformWindowHovered(_GLFWwindow* window)
+{
+    Window w = _glfw.x11.root;
+    while (w)
+    {
+        Window root;
+        int rootX, rootY, childX, childY;
+        unsigned int mask;
+
+        if (!XQueryPointer(_glfw.x11.display, w,
+                           &root, &w, &rootX, &rootY, &childX, &childY, &mask))
+        {
+            return GLFW_FALSE;
+        }
+
+        if (w == window->x11.handle)
+            return GLFW_TRUE;
+    }
+
+    return GLFW_FALSE;
+}
+
 int _glfwPlatformFramebufferTransparent(_GLFWwindow* window)
 {
     if (!window->x11.transparent)
@@ -2815,7 +2837,7 @@ void _glfwPlatformSetCursor(_GLFWwindow* window, _GLFWcursor* cursor)
 void _glfwPlatformSetClipboardString(const char* string)
 {
     free(_glfw.x11.clipboardString);
-    _glfw.x11.clipboardString = strdup(string);
+    _glfw.x11.clipboardString = _glfw_strdup(string);
 
     XSetSelectionOwner(_glfw.x11.display,
                        _glfw.x11.CLIPBOARD,
@@ -3007,7 +3029,7 @@ GLFWAPI void glfwSetX11SelectionString(const char* string)
     _GLFW_REQUIRE_INIT();
 
     free(_glfw.x11.primarySelectionString);
-    _glfw.x11.primarySelectionString = strdup(string);
+    _glfw.x11.primarySelectionString = _glfw_strdup(string);
 
     XSetSelectionOwner(_glfw.x11.display,
                        _glfw.x11.PRIMARY,

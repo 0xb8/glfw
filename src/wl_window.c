@@ -125,6 +125,7 @@ static void checkScaleChange(_GLFWwindow* window)
         wl_surface_set_buffer_scale(window->wl.surface, scale);
         wl_egl_window_resize(window->wl.native, scaledWidth, scaledHeight, 0, 0);
         _glfwInputFramebufferSize(window, scaledWidth, scaledHeight);
+        _glfwInputWindowContentScale(window, scale, scale);
     }
 }
 
@@ -436,7 +437,7 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
     }
 
     if (wndconfig->title)
-        window->wl.title = strdup(wndconfig->title);
+        window->wl.title = _glfw_strdup(wndconfig->title);
 
     if (wndconfig->visible)
     {
@@ -496,7 +497,7 @@ void _glfwPlatformSetWindowTitle(_GLFWwindow* window, const char* title)
 {
     if (window->wl.title)
         free(window->wl.title);
-    window->wl.title = strdup(title);
+    window->wl.title = _glfw_strdup(title);
     if (window->wl.shellSurface)
         wl_shell_surface_set_title(window->wl.shellSurface, title);
 }
@@ -690,6 +691,11 @@ int _glfwPlatformWindowVisible(_GLFWwindow* window)
 int _glfwPlatformWindowMaximized(_GLFWwindow* window)
 {
     return window->wl.maximized;
+}
+
+int _glfwPlatformWindowHovered(_GLFWwindow* window)
+{
+    return window->wl.hovered;
 }
 
 int _glfwPlatformFramebufferTransparent(_GLFWwindow* window)
