@@ -590,6 +590,14 @@ static void enableCursor(_GLFWwindow* window)
     updateCursorImage(window);
 }
 
+// Clear its handle when the input context has been destroyed
+//
+static void inputContextDestroyCallback(XIC ic, XPointer clientData, XPointer callData)
+{
+    _GLFWwindow* window = (_GLFWwindow*) clientData;
+    window->x11.ic = NULL;
+}
+
 // Create the X11 window (and its colormap)
 //
 static GLFWbool createNativeWindow(_GLFWwindow* window,
@@ -613,45 +621,40 @@ static GLFWbool createNativeWindow(_GLFWwindow* window,
 
     window->x11.transparent = _glfwIsVisualTransparentX11(visual);
 
-    // Create the actual window
+    XSetWindowAttributes wa = { 0 };
+    wa.colormap = window->x11.colormap;
+    wa.event_mask = StructureNotifyMask | KeyPressMask | KeyReleaseMask |
+                    PointerMotionMask | ButtonPressMask | ButtonReleaseMask |
+                    ExposureMask | FocusChangeMask | VisibilityChangeMask |
+                    EnterWindowMask | LeaveWindowMask | PropertyChangeMask;
+
+    _glfwGrabErrorHandlerX11();
+
+    window->x11.parent = _glfw.x11.root;
+    window->x11.handle = XCreateWindow(_glfw.x11.display,
+                                       _glfw.x11.root,
+                                       0, 0,   // Position
+                                       width, height,
+                                       0,      // Border width
+                                       depth,  // Color depth
+                                       InputOutput,
+                                       visual,
+                                       CWBorderPixel | CWColormap | CWEventMask,
+                                       &wa);
+
+    _glfwReleaseErrorHandlerX11();
+
+    if (!window->x11.handle)
     {
-        XSetWindowAttributes wa;
-        const unsigned long wamask = CWBorderPixel | CWColormap | CWEventMask;
-
-        wa.colormap = window->x11.colormap;
-        wa.border_pixel = 0;
-        wa.event_mask = StructureNotifyMask | KeyPressMask | KeyReleaseMask |
-                        PointerMotionMask | ButtonPressMask | ButtonReleaseMask |
-                        ExposureMask | FocusChangeMask | VisibilityChangeMask |
-                        EnterWindowMask | LeaveWindowMask | PropertyChangeMask;
-
-        _glfwGrabErrorHandlerX11();
-
-        window->x11.handle = XCreateWindow(_glfw.x11.display,
-                                           _glfw.x11.root,
-                                           0, 0,
-                                           width, height,
-                                           0,      // Border width
-                                           depth,  // Color depth
-                                           InputOutput,
-                                           visual,
-                                           wamask,
-                                           &wa);
-
-        _glfwReleaseErrorHandlerX11();
-
-        if (!window->x11.handle)
-        {
-            _glfwInputErrorX11(GLFW_PLATFORM_ERROR,
-                               "X11: Failed to create window");
-            return GLFW_FALSE;
-        }
-
-        XSaveContext(_glfw.x11.display,
-                     window->x11.handle,
-                     _glfw.x11.context,
-                     (XPointer) window);
+        _glfwInputErrorX11(GLFW_PLATFORM_ERROR,
+                           "X11: Failed to create window");
+        return GLFW_FALSE;
     }
+
+    XSaveContext(_glfw.x11.display,
+                 window->x11.handle,
+                 _glfw.x11.context,
+                 (XPointer) window);
 
     if (!wndconfig->decorated)
         _glfwPlatformSetWindowDecorated(window, GLFW_FALSE);
@@ -773,20 +776,10 @@ static GLFWbool createNativeWindow(_GLFWwindow* window,
                         PropModeReplace, (unsigned char*) &version, 1);
     }
 
-    _glfwPlatformSetWindowTitle(window, wndconfig->title);
-
     if (_glfw.x11.im)
-    {
-        window->x11.ic = XCreateIC(_glfw.x11.im,
-                                   XNInputStyle,
-                                   XIMPreeditNothing | XIMStatusNothing,
-                                   XNClientWindow,
-                                   window->x11.handle,
-                                   XNFocusWindow,
-                                   window->x11.handle,
-                                   NULL);
-    }
+        _glfwCreateInputContextX11(window);
 
+    _glfwPlatformSetWindowTitle(window, wndconfig->title);
     _glfwPlatformGetWindowPos(window, &window->x11.xpos, &window->x11.ypos);
     _glfwPlatformGetWindowSize(window, &window->x11.width, &window->x11.height);
 
@@ -1171,8 +1164,7 @@ static void processEvent(XEvent *event)
     if (event->type == KeyPress || event->type == KeyRelease)
         keycode = event->xkey.keycode;
 
-    if (_glfw.x11.im)
-        filtered = XFilterEvent(event, None);
+    filtered = XFilterEvent(event, None);
 
     if (_glfw.x11.randr.available)
     {
@@ -1260,6 +1252,12 @@ static void processEvent(XEvent *event)
 
     switch (event->type)
     {
+        case ReparentNotify:
+        {
+            window->x11.parent = event->xreparent.parent;
+            return;
+        }
+
         case KeyPress:
         {
             const int key = translateKey(keycode);
@@ -1544,18 +1542,34 @@ static void processEvent(XEvent *event)
                 window->x11.height = event->xconfigure.height;
             }
 
-            if (event->xconfigure.x != window->x11.xpos ||
-                event->xconfigure.y != window->x11.ypos)
-            {
-                if (window->x11.overrideRedirect || event->xany.send_event)
-                {
-                    _glfwInputWindowPos(window,
-                                        event->xconfigure.x,
-                                        event->xconfigure.y);
+            int xpos = event->xconfigure.x;
+            int ypos = event->xconfigure.y;
 
-                    window->x11.xpos = event->xconfigure.x;
-                    window->x11.ypos = event->xconfigure.y;
-                }
+            // NOTE: ConfigureNotify events from the server are in local
+            //       coordinates, so if we are reparented we need to translate
+            //       the position into root (screen) coordinates
+            if (!event->xany.send_event && window->x11.parent != _glfw.x11.root)
+            {
+                _glfwGrabErrorHandlerX11();
+
+                Window dummy;
+                XTranslateCoordinates(_glfw.x11.display,
+                                      window->x11.parent,
+                                      _glfw.x11.root,
+                                      xpos, ypos,
+                                      &xpos, &ypos,
+                                      &dummy);
+
+                _glfwReleaseErrorHandlerX11();
+                if (_glfw.x11.errorCode == BadWindow)
+                    return;
+            }
+
+            if (xpos != window->x11.xpos || ypos != window->x11.ypos)
+            {
+                _glfwInputWindowPos(window, xpos, ypos);
+                window->x11.xpos = xpos;
+                window->x11.ypos = ypos;
             }
 
             return;
@@ -1943,6 +1957,38 @@ void _glfwPushSelectionToManagerX11(void)
         }
 
         waitForEvent(NULL);
+    }
+}
+
+void _glfwCreateInputContextX11(_GLFWwindow* window)
+{
+    XIMCallback callback;
+    callback.callback = (XIMProc) inputContextDestroyCallback;
+    callback.client_data = (XPointer) window;
+
+    window->x11.ic = XCreateIC(_glfw.x11.im,
+                               XNInputStyle,
+                               XIMPreeditNothing | XIMStatusNothing,
+                               XNClientWindow,
+                               window->x11.handle,
+                               XNFocusWindow,
+                               window->x11.handle,
+                               XNDestroyCallback,
+                               &callback,
+                               NULL);
+
+    if (window->x11.ic)
+    {
+        XWindowAttributes attribs;
+        XGetWindowAttributes(_glfw.x11.display, window->x11.handle, &attribs);
+
+        unsigned long filter = 0;
+        if (XGetICValues(window->x11.ic, XNFilterEvents, &filter, NULL) == NULL)
+        {
+            XSelectInput(_glfw.x11.display,
+                         window->x11.handle,
+                         attribs.your_event_mask | filter);
+        }
     }
 }
 
@@ -2437,7 +2483,7 @@ void _glfwPlatformFocusWindow(_GLFWwindow* window)
 {
     if (_glfw.x11.NET_ACTIVE_WINDOW)
         sendEventToWM(window, _glfw.x11.NET_ACTIVE_WINDOW, 1, 0, 0, 0, 0);
-    else
+    else if (_glfwPlatformWindowVisible(window))
     {
         XRaiseWindow(_glfw.x11.display, window->x11.handle);
         XSetInputFocus(_glfw.x11.display, window->x11.handle,
@@ -2744,7 +2790,7 @@ void _glfwPlatformPollEvents(void)
 #endif
     XPending(_glfw.x11.display);
 
-    while (XQLength(_glfw.x11.display))
+    while (QLength(_glfw.x11.display))
     {
         XEvent event;
         XNextEvent(_glfw.x11.display, &event);
@@ -2846,6 +2892,13 @@ const char* _glfwPlatformGetScancodeName(int scancode)
 {
     if (!_glfw.x11.xkb.available)
         return NULL;
+
+    if (scancode < 0 || scancode > 0xff ||
+        _glfw.x11.keycodes[scancode] == GLFW_KEY_UNKNOWN)
+    {
+        _glfwInputError(GLFW_INVALID_VALUE, "Invalid scancode");
+        return NULL;
+    }
 
     const int key = _glfw.x11.keycodes[scancode];
     const KeySym keysym = XkbKeycodeToKeysym(_glfw.x11.display,
@@ -2975,8 +3028,9 @@ void _glfwPlatformSetCursor(_GLFWwindow* window, _GLFWcursor* cursor)
 
 void _glfwPlatformSetClipboardString(const char* string)
 {
+    char* copy = _glfw_strdup(string);
     free(_glfw.x11.clipboardString);
-    _glfw.x11.clipboardString = _glfw_strdup(string);
+    _glfw.x11.clipboardString = copy;
 
     XSetSelectionOwner(_glfw.x11.display,
                        _glfw.x11.CLIPBOARD,
