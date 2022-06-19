@@ -44,6 +44,7 @@ video tutorials.
  - Noel Cower
  - CuriouserThing
  - Jason Daly
+ - danhambleton
  - Jarrod Davis
  - Olivier Delannoy
  - Paul R. Deppe
@@ -136,6 +137,7 @@ video tutorials.
  - Kenneth Miller
  - Bruce Mitchener
  - Jack Moffitt
+ - Ravi Mohan
  - Jeff Molofee
  - Alexander Monakov
  - Pierre Morel
@@ -171,6 +173,7 @@ video tutorials.
  - Pablo Prietz
  - przemekmirek
  - pthom
+ - Martin Pulec
  - Guillaume Racicot
  - Philip Rideout
  - Eddie Ringle

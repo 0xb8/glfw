@@ -47,13 +47,38 @@
 #include "wayland-pointer-constraints-unstable-v1-client-protocol.h"
 #include "wayland-idle-inhibit-unstable-v1-client-protocol.h"
 
+// NOTE: Versions of wayland-scanner prior to 1.17.91 named every global array of
+//       wl_interface pointers 'types', making it impossible to combine several unmodified
+//       private-code files into a single compilation unit
+// HACK: We override this name with a macro for each file, allowing them to coexist
+
+#define types _glfw_wayland_types
 #include "wayland-client-protocol-code.h"
+#undef types
+
+#define types _glfw_xdg_shell_types
 #include "wayland-xdg-shell-client-protocol-code.h"
+#undef types
+
+#define types _glfw_xdg_decoration_types
 #include "wayland-xdg-decoration-client-protocol-code.h"
+#undef types
+
+#define types _glfw_viewporter_types
 #include "wayland-viewporter-client-protocol-code.h"
+#undef types
+
+#define types _glfw_relative_pointer_types
 #include "wayland-relative-pointer-unstable-v1-client-protocol-code.h"
+#undef types
+
+#define types _glfw_pointer_constraints_types
 #include "wayland-pointer-constraints-unstable-v1-client-protocol-code.h"
+#undef types
+
+#define types _glfw_idle_inhibit_types
 #include "wayland-idle-inhibit-unstable-v1-client-protocol-code.h"
+#undef types
 
 static void wmBaseHandlePing(void* userData,
                              struct xdg_wm_base* wmBase,
@@ -572,10 +597,10 @@ int _glfwInitWayland(void)
         _glfwPlatformGetModuleSymbol(_glfw.wl.xkb.handle, "xkb_state_key_get_syms");
     _glfw.wl.xkb.state_update_mask = (PFN_xkb_state_update_mask)
         _glfwPlatformGetModuleSymbol(_glfw.wl.xkb.handle, "xkb_state_update_mask");
-    _glfw.wl.xkb.state_serialize_mods = (PFN_xkb_state_serialize_mods)
-        _glfwPlatformGetModuleSymbol(_glfw.wl.xkb.handle, "xkb_state_serialize_mods");
     _glfw.wl.xkb.state_key_get_layout = (PFN_xkb_state_key_get_layout)
         _glfwPlatformGetModuleSymbol(_glfw.wl.xkb.handle, "xkb_state_key_get_layout");
+    _glfw.wl.xkb.state_mod_index_is_active = (PFN_xkb_state_mod_index_is_active)
+        _glfwPlatformGetModuleSymbol(_glfw.wl.xkb.handle, "xkb_state_mod_index_is_active");
     _glfw.wl.xkb.compose_table_new_from_locale = (PFN_xkb_compose_table_new_from_locale)
         _glfwPlatformGetModuleSymbol(_glfw.wl.xkb.handle, "xkb_compose_table_new_from_locale");
     _glfw.wl.xkb.compose_table_unref = (PFN_xkb_compose_table_unref)
@@ -663,6 +688,8 @@ int _glfwInitWayland(void)
 void _glfwTerminateWayland(void)
 {
     _glfwTerminateEGL();
+    _glfwTerminateOSMesa();
+
     if (_glfw.wl.egl.handle)
     {
         _glfwPlatformFreeModule(_glfw.wl.egl.handle);
