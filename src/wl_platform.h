@@ -198,11 +198,6 @@ typedef xkb_keysym_t (* PFN_xkb_compose_state_get_one_sym)(struct xkb_compose_st
 #define xkb_compose_state_get_status _glfw.wl.xkb.compose_state_get_status
 #define xkb_compose_state_get_one_sym _glfw.wl.xkb.compose_state_get_one_sym
 
-#define _GLFW_DECORATION_WIDTH 4
-#define _GLFW_DECORATION_TOP 24
-#define _GLFW_DECORATION_VERTICAL (_GLFW_DECORATION_TOP + _GLFW_DECORATION_WIDTH)
-#define _GLFW_DECORATION_HORIZONTAL (2 * _GLFW_DECORATION_WIDTH)
-
 typedef enum _GLFWdecorationSideWayland
 {
     mainWindow,
@@ -233,22 +228,37 @@ typedef struct _GLFWwindowWayland
     int                         width, height;
     GLFWbool                    visible;
     GLFWbool                    maximized;
+    GLFWbool                    activated;
+    GLFWbool                    fullscreen;
     GLFWbool                    hovered;
     GLFWbool                    transparent;
     struct wl_surface*          surface;
-    struct wl_egl_window*       native;
     struct wl_callback*         callback;
+
+    struct {
+        struct wl_egl_window*   window;
+    } egl;
+
+    struct {
+        int                     width, height;
+        GLFWbool                maximized;
+        GLFWbool                iconified;
+        GLFWbool                activated;
+        GLFWbool                fullscreen;
+    } pending;
 
     struct {
         struct xdg_surface*     surface;
         struct xdg_toplevel*    toplevel;
         struct zxdg_toplevel_decoration_v1* decoration;
+        uint32_t                decorationMode;
     } xdg;
 
     _GLFWcursor*                currentCursor;
     double                      cursorPosX, cursorPosY;
 
     char*                       title;
+    char*                       appId;
 
     // We need to track the monitors the window spans on to calculate the
     // optimal scaling factor.
@@ -257,20 +267,16 @@ typedef struct _GLFWwindowWayland
     int                         monitorsCount;
     int                         monitorsSize;
 
-    struct {
-        struct zwp_relative_pointer_v1*    relativePointer;
-        struct zwp_locked_pointer_v1*      lockedPointer;
-    } pointerLock;
+    struct zwp_relative_pointer_v1* relativePointer;
+    struct zwp_locked_pointer_v1*   lockedPointer;
+    struct zwp_confined_pointer_v1* confinedPointer;
 
     struct zwp_idle_inhibitor_v1*          idleInhibitor;
 
-    GLFWbool                    wasFullscreen;
-
     struct {
-        GLFWbool                           serverSide;
         struct wl_buffer*                  buffer;
         _GLFWdecorationWayland             top, left, right, bottom;
-        int                                focus;
+        _GLFWdecorationSideWayland         focus;
     } decorations;
 } _GLFWwindowWayland;
 
@@ -316,12 +322,12 @@ typedef struct _GLFWlibraryWayland
     uint32_t                    serial;
     uint32_t                    pointerEnterSerial;
 
-    int32_t                     keyboardRepeatRate;
-    int32_t                     keyboardRepeatDelay;
-    int                         keyboardLastKey;
-    int                         keyboardLastScancode;
+    int                         keyRepeatTimerfd;
+    int32_t                     keyRepeatRate;
+    int32_t                     keyRepeatDelay;
+    int                         keyRepeatScancode;
+
     char*                       clipboardString;
-    int                         timerfd;
     short int                   keycodes[256];
     short int                   scancodes[GLFW_KEY_LAST + 1];
     char                        keynames[GLFW_KEY_LAST + 1][5];
@@ -508,7 +514,7 @@ GLFWbool _glfwGetGammaRampWayland(_GLFWmonitor* monitor, GLFWgammaramp* ramp);
 void _glfwSetGammaRampWayland(_GLFWmonitor* monitor, const GLFWgammaramp* ramp);
 
 void _glfwAddOutputWayland(uint32_t name, uint32_t version);
-GLFWbool _glfwInputTextWayland(_GLFWwindow* window, uint32_t scancode);
+void _glfwUpdateContentScaleWayland(_GLFWwindow* window);
 
 void _glfwAddSeatListenerWayland(struct wl_seat* seat);
 void _glfwAddDataDeviceListenerWayland(struct wl_data_device* device);
